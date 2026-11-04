@@ -4,6 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Performance Sales GS LOFT</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="apple-touch-icon" href="/favicon.svg">
+<script>
+  // Applica subito il tema salvato, prima che la pagina venga disegnata.
+  try { const t = localStorage.getItem("gs-theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (_) {}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&display=swap">
@@ -66,6 +72,10 @@ header.top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-cont
 .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
 h1 { margin: 0; font-size: clamp(26px, 4vw, 36px); font-weight: 700; letter-spacing: -.02em; text-wrap: balance; }
 .updated { color: var(--muted); font-size: 13px; }
+.top-right { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; justify-content: flex-end; }
+.theme { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 2px; background: var(--panel); }
+.theme button { border: 0; background: none; border-radius: 999px; padding: 5px 12px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.theme button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
 .updated b { color: var(--ink); font-weight: 600; }
 .alert { border: 1px solid var(--bad); color: var(--bad); border-radius: var(--radius); padding: 10px 14px; font-size: 14px; }
 .filters { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: end; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
@@ -135,7 +145,14 @@ td.flag { color: var(--warn); font-weight: 600; }
       <span class="eyebrow">GS LOFT · Sales</span>
       <h1>Performance Sales</h1>
     </div>
-    <div class="updated" id="updated">Caricamento dati…</div>
+    <div class="top-right">
+      <div class="updated" id="updated">Caricamento dati…</div>
+      <div class="theme" role="group" aria-label="Tema">
+        <button type="button" data-theme-choice="light">Chiaro</button>
+        <button type="button" data-theme-choice="dark">Scuro</button>
+        <button type="button" data-theme-choice="auto">Auto</button>
+      </div>
+    </div>
   </header>
 
   <div class="alert" id="alert" hidden></div>
@@ -676,6 +693,19 @@ td.flag { color: var(--warn); font-weight: 600; }
   $("#matrix-metric").addEventListener("change", (e) => { state.metric = e.target.value; draw(); });
   let rt; window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(draw, 150); });
   window.matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", draw);
+
+  // Selettore tema: Chiaro, Scuro o Auto (segue il sistema). La scelta resta salvata nel browser.
+  const themeButtons = document.querySelectorAll("[data-theme-choice]");
+  const currentTheme = () => document.documentElement.dataset.theme || "auto";
+  const markTheme = () => themeButtons.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.themeChoice === currentTheme())));
+  themeButtons.forEach((b) => b.addEventListener("click", () => {
+    const t = b.dataset.themeChoice;
+    if (t === "auto") delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = t;
+    try { if (t === "auto") localStorage.removeItem("gs-theme"); else localStorage.setItem("gs-theme", t); } catch (_) {}
+    markTheme();
+    draw();
+  }));
+  markTheme();
 
   // ---------- caricamento ----------
   async function load() {
