@@ -1,0 +1,9 @@
+{
+  "name": "gsloft-performance-sales",
+  "private": true,
+  "type": "module",
+  "description": "Dashboard Performance Sales GS LOFT con dati HubSpot aggiornati ogni 3 ore su Netlify",
+  "dependencies": {
+    "@netlify/blobs": "11.1.4"
+  }
+}

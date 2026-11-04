@@ -1,0 +1,709 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Performance Sales GS LOFT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: barra filtri in alto, riga di indicatori, poi una scheda per vista (mensile, settimanale, confronto, tipologia). */
+:root {
+  --bg: #f6f8f8;
+  --panel: #ffffff;
+  --ink: #0d1414;
+  --muted: #5b6b6a;
+  --line: #dde5e4;
+  --accent: #0f9c8f;          /* verde acqua GS LOFT */
+  --accent-soft: #d6f1ee;
+  --s-answered: #0f9c8f;
+  --s-noanswer: #e0a33b;
+  --s-cancelled: #c9574a;
+  --s-open: #b7c3c2;
+  --s-paid: #0d1414;
+  --t-sc: #7fd3ca;
+  --t-ufp: #0f9c8f;
+  --t-sfp: #0b5f58;
+  --t-other: #b7c3c2;
+  --good: #0b7a6f;
+  --warn: #a8661a;
+  --bad: #b2463a;
+  --font: "Hanken Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --radius: 10px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b1111; --panel: #121a1a; --ink: #eef4f3; --muted: #93a5a3; --line: #233130;
+    --accent: #3cc7b9; --accent-soft: #143a36;
+    --s-answered: #3cc7b9; --s-noanswer: #e8b45a; --s-cancelled: #e07a6c; --s-open: #4a5b5a; --s-paid: #eef4f3;
+    --t-sc: #9fe3da; --t-ufp: #3cc7b9; --t-sfp: #1f8a7f; --t-other: #4a5b5a;
+    --good: #5fd6c8; --warn: #e8b45a; --bad: #ef8a7c;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0b1111; --panel: #121a1a; --ink: #eef4f3; --muted: #93a5a3; --line: #233130;
+  --accent: #3cc7b9; --accent-soft: #143a36;
+  --s-answered: #3cc7b9; --s-noanswer: #e8b45a; --s-cancelled: #e07a6c; --s-open: #4a5b5a; --s-paid: #eef4f3;
+  --t-sc: #9fe3da; --t-ufp: #3cc7b9; --t-sfp: #1f8a7f; --t-other: #4a5b5a;
+  --good: #5fd6c8; --warn: #e8b45a; --bad: #ef8a7c;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 15px; line-height: 1.45;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: max(20px, env(safe-area-inset-top, 0px)) 48px;
+}
+.wrap { max-width: 1240px; margin-inline: auto; display: grid; gap: 20px; }
+header.top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; }
+.brand { display: grid; gap: 4px; }
+.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+h1 { margin: 0; font-size: clamp(26px, 4vw, 36px); font-weight: 700; letter-spacing: -.02em; text-wrap: balance; }
+.updated { color: var(--muted); font-size: 13px; }
+.updated b { color: var(--ink); font-weight: 600; }
+.alert { border: 1px solid var(--bad); color: var(--bad); border-radius: var(--radius); padding: 10px 14px; font-size: 14px; }
+.filters { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: end; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
+.field { display: grid; gap: 4px; }
+.field label, .lbl { font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+select, input[type=date], button { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; }
+button { cursor: pointer; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { padding: 6px 12px; border-radius: 999px; background: var(--bg); border: 1px solid var(--line); font-weight: 500; }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.presets { display: flex; gap: 6px; flex-wrap: wrap; }
+.presets button { font-size: 13px; padding: 6px 10px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr)); gap: 12px; }
+.kpi { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; display: grid; gap: 2px; align-content: start; }
+.kpi .v { font-size: 30px; font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.kpi .s { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.kpi.main { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.kpi.main .lbl, .kpi.main .s { color: color-mix(in srgb, var(--bg) 70%, transparent); }
+
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); overflow-x: auto; }
+.tab { border: 0; background: none; border-radius: 0; padding: 10px 14px; font-weight: 600; color: var(--muted); border-bottom: 2px solid transparent; white-space: nowrap; }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+section.view { display: grid; gap: 16px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; display: grid; gap: 12px; min-width: 0; }
+.card h2 { margin: 0; font-size: 17px; font-weight: 600; }
+.card .note { margin: 0; color: var(--muted); font-size: 13px; max-width: 75ch; }
+.card-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px; align-items: start; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.legend i.line { height: 3px; border-radius: 2px; }
+.chart { position: relative; min-height: 260px; }
+.chart svg { display: block; width: 100%; height: auto; }
+.chart text { fill: var(--muted); font-size: 12px; font-family: var(--font); }
+.chart .grid line { stroke: var(--line); }
+.chart .domain { stroke: var(--line); }
+.tip { position: absolute; pointer-events: none; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 6px 20px rgb(0 0 0 / .12); padding: 8px 10px; font-size: 13px; min-width: 150px; opacity: 0; transition: opacity .12s; z-index: 5; }
+.tip .h { color: var(--muted); margin-bottom: 4px; }
+.tip .r { display: flex; justify-content: space-between; gap: 12px; font-variant-numeric: tabular-nums; }
+.tip .r i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; margin-right: 6px; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 16px; }
+
+.tablebox { overflow-x: auto; max-height: 560px; overflow-y: auto; border: 1px solid var(--line); border-radius: 8px; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; font-size: 14px; }
+th, td { padding: 8px 10px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+thead th { position: sticky; top: 0; background: var(--panel); font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; z-index: 1; }
+tbody tr:hover { background: var(--accent-soft); }
+tfoot td { font-weight: 700; border-top: 2px solid var(--line); background: var(--panel); position: sticky; bottom: 0; }
+td.rate { color: var(--muted); }
+td.flag { color: var(--warn); font-weight: 600; }
+.bar-cell { display: inline-block; height: 6px; border-radius: 3px; background: var(--accent); vertical-align: middle; margin-left: 8px; }
+.empty { color: var(--muted); padding: 24px; text-align: center; }
+.defs { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 8px 24px; font-size: 13px; color: var(--muted); margin: 0; }
+.defs dt { color: var(--ink); font-weight: 600; }
+.defs dd { margin: 0 0 6px; }
+.loading { color: var(--muted); padding: 40px 0; text-align: center; }
+@media (prefers-reduced-motion: reduce) { .tip { transition: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <span class="eyebrow">GS LOFT · Sales</span>
+      <h1>Performance Sales</h1>
+    </div>
+    <div class="updated" id="updated">Caricamento dati…</div>
+  </header>
+
+  <div class="alert" id="alert" hidden></div>
+
+  <div class="filters" id="filters">
+    <div class="field">
+      <span class="lbl">Sales</span>
+      <div class="chips" id="sales-chips" role="group" aria-label="Sales"></div>
+    </div>
+    <div class="field">
+      <label for="from">Dal</label>
+      <input type="date" id="from">
+    </div>
+    <div class="field">
+      <label for="to">Al</label>
+      <input type="date" id="to">
+    </div>
+    <div class="field">
+      <span class="lbl">Periodo rapido</span>
+      <div class="presets">
+        <button type="button" data-preset="month">Questo mese</button>
+        <button type="button" data-preset="prev">Mese scorso</button>
+        <button type="button" data-preset="90">Ultimi 90 giorni</button>
+        <button type="button" data-preset="all">Tutto</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <nav class="tabs" role="tablist" aria-label="Viste">
+    <button class="tab" role="tab" id="tab-mensile" aria-selected="true" data-view="mensile">Mensile</button>
+    <button class="tab" role="tab" id="tab-settimanale" aria-selected="false" data-view="settimanale">Settimanale</button>
+    <button class="tab" role="tab" id="tab-confronto" aria-selected="false" data-view="confronto">Confronto sales</button>
+    <button class="tab" role="tab" id="tab-tipologia" aria-selected="false" data-view="tipologia">Vendite per tipologia</button>
+  </nav>
+
+  <section class="view" id="view-mensile" role="tabpanel" aria-labelledby="tab-mensile">
+    <div class="card">
+      <div class="card-head">
+        <div><h2>Appuntamenti e pagati per mese</h2><p class="note">Ogni barra è il totale degli appuntamenti del mese, divisi per esito. La linea sono i pagati.</p></div>
+        <div class="legend" id="legend-outcomes"></div>
+      </div>
+      <div class="chart" id="chart-month"></div>
+    </div>
+    <div class="card">
+      <h2>Riepilogo mensile</h2>
+      <div class="tablebox" id="table-month"></div>
+    </div>
+  </section>
+
+  <section class="view" id="view-settimanale" role="tabpanel" aria-labelledby="tab-settimanale" hidden>
+    <div class="card">
+      <div class="card-head">
+        <div><h2>Appuntamenti e pagati per settimana</h2><p class="note">Settimane da lunedì a domenica, indicate dal lunedì di inizio.</p></div>
+        <div class="legend" id="legend-outcomes-w"></div>
+      </div>
+      <div class="chart" id="chart-week"></div>
+    </div>
+    <div class="card">
+      <h2>Riepilogo settimanale</h2>
+      <div class="tablebox" id="table-week"></div>
+    </div>
+  </section>
+
+  <section class="view" id="view-confronto" role="tabpanel" aria-labelledby="tab-confronto" hidden>
+    <div class="card">
+      <div><h2>Confronto tra sales nel periodo</h2><p class="note">Tutti i sales sul periodo scelto nei filtri, indipendentemente dal sales selezionato.</p></div>
+      <div class="tablebox" id="table-compare"></div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div><h2>Mese per sales</h2><p class="note">Lo stesso indicatore mese per mese per ogni sales.</p></div>
+        <div class="field">
+          <label for="matrix-metric">Indicatore</label>
+          <select id="matrix-metric">
+            <option value="paid">Pagati</option>
+            <option value="calls">Appuntamenti</option>
+            <option value="answered">Risposto</option>
+            <option value="answerRate">Tasso di risposta</option>
+            <option value="noShowRate">Tasso di no show</option>
+            <option value="paidOnAnswered">Pagati su risposto</option>
+            <option value="conversion">Conversione complessiva</option>
+          </select>
+        </div>
+      </div>
+      <div class="legend" id="legend-sales"></div>
+      <div class="chart" id="chart-matrix"></div>
+      <div class="tablebox" id="table-matrix"></div>
+    </div>
+  </section>
+
+  <section class="view" id="view-tipologia" role="tabpanel" aria-labelledby="tab-tipologia" hidden>
+    <div class="card">
+      <div class="card-head">
+        <div><h2>Fatturato a listino per mese</h2><p class="note">Pagati per pacchetto moltiplicati per il prezzo di listino. Il mese è quello della data del primo pagamento.</p></div>
+        <div class="legend" id="legend-types"></div>
+      </div>
+      <div class="chart" id="chart-types"></div>
+    </div>
+    <div class="card">
+      <h2>Vendite per mese e tipologia</h2>
+      <div class="tablebox" id="table-types"></div>
+    </div>
+  </section>
+
+  <div class="card">
+    <h2>Come leggere i numeri</h2>
+    <dl class="defs">
+      <div><dt>Appuntamenti</dt><dd>Riunioni HubSpot assegnate al sales, nel giorno dell'appuntamento. Sostituiscono le "chiamate" dei report PDF.</dd></div>
+      <div><dt>Risposto · Non risposto · Annullate</dt><dd>Esito della riunione: Completed, No show, Canceled.</dd></div>
+      <div><dt>Senza esito</dt><dd>Riunioni rimaste "Scheduled" o "Rescheduled": l'esito non è stato aggiornato in HubSpot.</dd></div>
+      <div><dt>Pagati</dt><dd>Trattative del sales con "Data primo pagamento" nel periodo.</dd></div>
+      <div><dt>Tasso di risposta</dt><dd>Risposto diviso appuntamenti. Il tasso di no show è non risposto diviso appuntamenti.</dd></div>
+      <div><dt>Pagati su risposto · Conversione complessiva</dt><dd>Pagati divisi per risposto, e pagati divisi per appuntamenti.</dd></div>
+      <div><dt>Fatturato a listino</dt><dd>Starter Check Up 190 €, Ultra Fast Program 390 €, Super Fast / Foundation Program 990 €. Altri pacchetti e pacchetto non indicato non hanno prezzo.</dd></div>
+      <div><dt>Aggiornamento</dt><dd>I dati vengono riletti da HubSpot ogni 3 ore.</dd></div>
+    </dl>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script>
+(() => {
+  const $ = (s) => document.querySelector(s);
+  const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  const fmtInt = new Intl.NumberFormat("it-IT", { useGrouping: "always" });
+  const fmtPct = new Intl.NumberFormat("it-IT", { style: "percent", maximumFractionDigits: 1 });
+  const fmtEur = new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR", maximumFractionDigits: 0, useGrouping: "always" });
+  const MONTHS = ["gen", "feb", "mar", "apr", "mag", "giu", "lug", "ago", "set", "ott", "nov", "dic"];
+  const monthLabel = (m) => { const [y, mm] = m.split("-"); return `${MONTHS[+mm - 1]} ${y.slice(2)}`; };
+  const dayLabel = (d) => { const [y, m, dd] = d.split("-"); return `${+dd} ${MONTHS[+m - 1]} ${y.slice(2)}`; };
+  const pct = (v) => (v == null || !isFinite(v) ? "–" : fmtPct.format(v));
+  const int = (v) => fmtInt.format(v || 0);
+
+  const OUTCOMES = [
+    { key: "answered", label: "Risposto", color: "--s-answered" },
+    { key: "noAnswer", label: "Non risposto", color: "--s-noanswer" },
+    { key: "cancelled", label: "Annullate", color: "--s-cancelled" },
+    { key: "open", label: "Senza esito", color: "--s-open" },
+  ];
+  const TYPE_COLORS = { SC: "--t-sc", UFP: "--t-ufp", SFP: "--t-sfp", ALTRO: "--t-other", ND: "--t-other" };
+  const SALES_COLORS = ["--t-ufp", "--s-noanswer", "--s-cancelled", "--t-sc", "--t-sfp", "--s-open"];
+
+  let DATA = null;
+  const state = { sales: "all", from: null, to: null, view: "mensile", metric: "paid" };
+
+  // ---------- calcoli ----------
+  const isoDay = (d) => d.toISOString().slice(0, 10);
+  const mondayOf = (day) => { const d = new Date(day + "T00:00:00Z"); const w = (d.getUTCDay() + 6) % 7; d.setUTCDate(d.getUTCDate() - w); return isoDay(d); };
+
+  function agg(rows) {
+    const t = { days: 0, calls: 0, answered: 0, noAnswer: 0, cancelled: 0, open: 0, paid: 0 };
+    for (const r of rows) {
+      if (r.calls > 0) t.days++;
+      t.calls += r.calls; t.answered += r.answered; t.noAnswer += r.noAnswer;
+      t.cancelled += r.cancelled; t.open += r.open; t.paid += r.paid;
+    }
+    t.answerRate = t.calls ? t.answered / t.calls : null;
+    t.noShowRate = t.calls ? t.noAnswer / t.calls : null;
+    t.paidOnAnswered = t.answered ? t.paid / t.answered : null;
+    t.conversion = t.calls ? t.paid / t.calls : null;
+    return t;
+  }
+  const inPeriod = (r) => r.d >= state.from && r.d <= state.to;
+  const bySales = (r) => state.sales === "all" || r.s === state.sales;
+  const selectedRows = () => DATA.days.filter((r) => inPeriod(r) && bySales(r));
+  const groupBy = (rows, keyFn) => { const m = new Map(); for (const r of rows) { const k = keyFn(r); if (!m.has(k)) m.set(k, []); m.get(k).push(r); } return m; };
+  const monthsInPeriod = () => { const out = []; let [y, m] = state.from.slice(0, 7).split("-").map(Number); const end = state.to.slice(0, 7); for (;;) { const k = `${y}-${String(m).padStart(2, "0")}`; if (k > end) break; out.push(k); m++; if (m > 12) { m = 1; y++; } } return out; };
+  const weeksInPeriod = () => { const out = []; let d = new Date(mondayOf(state.from) + "T00:00:00Z"); while (isoDay(d) <= state.to) { out.push(isoDay(d)); d.setUTCDate(d.getUTCDate() + 7); } return out; };
+  const typeRows = () => DATA.types.filter((t) => t.m >= state.from.slice(0, 7) && t.m <= state.to.slice(0, 7) && (state.sales === "all" || t.s === state.sales));
+
+  // ---------- tabelle ----------
+  const COLS = [
+    { k: "days", h: "Giorni", f: int },
+    { k: "calls", h: "Appuntamenti", f: int },
+    { k: "answered", h: "Risposto", f: int },
+    { k: "noAnswer", h: "Non risposto", f: int },
+    { k: "cancelled", h: "Annullate", f: int },
+    { k: "open", h: "Senza esito", f: int, flag: true },
+    { k: "paid", h: "Pagati", f: int },
+    { k: "answerRate", h: "Tasso risposta", f: pct, rate: true },
+    { k: "noShowRate", h: "No show", f: pct, rate: true },
+    { k: "paidOnAnswered", h: "Pagati su risposto", f: pct, rate: true },
+    { k: "conversion", h: "Conversione", f: pct, rate: true },
+  ];
+  function table(el, firstHead, items, total) {
+    const box = $(el);
+    box.replaceChildren();
+    if (!items.length) { const p = document.createElement("div"); p.className = "empty"; p.textContent = "Nessun dato nel periodo scelto."; box.append(p); return; }
+    const t = document.createElement("table");
+    const thead = t.createTHead().insertRow();
+    for (const h of [firstHead, ...COLS.map((c) => c.h)]) { const th = document.createElement("th"); th.textContent = h; thead.append(th); }
+    const tb = t.createTBody();
+    for (const it of items) {
+      const tr = tb.insertRow();
+      const c0 = tr.insertCell(); c0.textContent = it.label;
+      for (const c of COLS) {
+        const td = tr.insertCell();
+        const v = it.t[c.k];
+        td.textContent = it.t.calls === 0 && it.t.paid === 0 && c.k !== "days" ? "–" : c.f(v);
+        if (c.rate) td.className = "rate";
+        if (c.flag && v > 0) td.className = "flag";
+      }
+    }
+    if (total) {
+      const tf = t.createTFoot().insertRow();
+      const c0 = tf.insertCell(); c0.textContent = "Totale";
+      for (const c of COLS) { const td = tf.insertCell(); td.textContent = c.f(total[c.k]); }
+    }
+    box.append(t);
+  }
+
+  // ---------- grafici ----------
+  function tooltip(container) {
+    let tip = container.querySelector(".tip");
+    if (!tip) { tip = document.createElement("div"); tip.className = "tip"; container.append(tip); }
+    return {
+      show(event, head, rows) {
+        tip.replaceChildren();
+        const h = document.createElement("div"); h.className = "h"; h.textContent = head; tip.append(h);
+        for (const r of rows) {
+          const line = document.createElement("div"); line.className = "r";
+          const a = document.createElement("span");
+          if (r.color) { const i = document.createElement("i"); i.style.background = r.color; a.append(i); }
+          a.append(document.createTextNode(r.label));
+          const b = document.createElement("b"); b.textContent = r.value;
+          line.append(a, b); tip.append(line);
+        }
+        const box = container.getBoundingClientRect();
+        let x = event.clientX - box.left + 12, y = event.clientY - box.top + 12;
+        tip.style.opacity = 1;
+        const w = tip.offsetWidth, hgt = tip.offsetHeight;
+        if (x + w > box.width) x = Math.max(0, event.clientX - box.left - w - 12);
+        if (y + hgt > box.height) y = Math.max(0, box.height - hgt);
+        tip.style.left = x + "px"; tip.style.top = y + "px";
+      },
+      hide() { tip.style.opacity = 0; },
+    };
+  }
+
+  function setupSvg(el, height) {
+    const container = $(el);
+    container.querySelectorAll("svg, .empty").forEach((n) => n.remove());
+    const width = Math.max(280, container.clientWidth || 600);
+    const svg = d3.select(container).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("width", "100%").attr("role", "img");
+    return { container, svg, width, height };
+  }
+  const emptyChart = (el, msg) => { const c = $(el); c.querySelectorAll("svg, .empty").forEach((n) => n.remove()); const p = document.createElement("div"); p.className = "empty"; p.textContent = msg; c.append(p); };
+
+  function measure(svg, texts) {
+    const g = svg.append("g");
+    const w = d3.max(texts, (t) => g.append("text").attr("font-size", 12).text(t).node().getComputedTextLength()) || 0;
+    g.remove();
+    return w;
+  }
+
+  // Barre impilate per esito + linea dei pagati
+  function outcomeChart(el, keys, labelFn, map) {
+    if (!keys.length) return emptyChart(el, "Nessun dato nel periodo scelto.");
+    const data = keys.map((k) => ({ k, t: map.get(k) || agg([]) }));
+    const { container, svg, width, height } = setupSvg(el, 280);
+    const maxY = d3.max(data, (d) => d.t.calls) || 1;
+    const y = d3.scaleLinear([0, maxY], [height - 28, 12]).nice();
+    const ml = measure(svg, y.ticks(5).map(int)) + 10;
+    const x = d3.scaleBand(keys, [ml, width - 8]).paddingInner(0.25).paddingOuter(0.1);
+    svg.append("g").attr("class", "grid").attr("transform", `translate(${ml},0)`)
+      .call(d3.axisLeft(y).ticks(5).tickSize(-(width - ml - 8)).tickFormat(int))
+      .call((g) => g.select(".domain").remove())
+      .call((g) => g.selectAll("text").attr("x", -8))
+      .attr("font-size", null).attr("font-family", null);
+    const maxLabels = Math.max(2, Math.floor((width - ml) / 54));
+    const step = Math.ceil(keys.length / maxLabels);
+    svg.append("g").attr("transform", `translate(0,${height - 28})`)
+      .call(d3.axisBottom(x).tickSize(0).tickPadding(8).tickFormat((k, i) => (i % step === 0 ? labelFn(k) : "")))
+      .attr("font-size", null).attr("font-family", null)
+      .call((g) => g.select(".domain").attr("stroke", css("--line")));
+    const bw = Math.min(32, x.bandwidth());
+    const off = (x.bandwidth() - bw) / 2;
+    const cols = Object.fromEntries(OUTCOMES.map((o) => [o.key, css(o.color)]));
+    const stack = d3.stack().keys(OUTCOMES.map((o) => o.key))(data.map((d) => ({ k: d.k, ...d.t })));
+    svg.append("g").selectAll("g").data(stack).join("g").attr("fill", (s) => cols[s.key])
+      .selectAll("rect").data((s) => s).join("rect")
+      .attr("x", (d) => x(d.data.k) + off).attr("width", bw)
+      .attr("y", (d) => y(d[1])).attr("height", (d) => Math.max(0, y(d[0]) - y(d[1])));
+    const line = d3.line().x((d) => x(d.k) + x.bandwidth() / 2).y((d) => y(d.t.paid));
+    const paidColor = css("--s-paid");
+    svg.append("path").datum(data).attr("fill", "none").attr("stroke", paidColor).attr("stroke-width", 2)
+      .attr("stroke-linejoin", "round").attr("stroke-linecap", "round").attr("d", line);
+    svg.append("g").selectAll("circle").data(data).join("circle")
+      .attr("cx", (d) => x(d.k) + x.bandwidth() / 2).attr("cy", (d) => y(d.t.paid)).attr("r", data.length > 30 ? 2 : 3.5)
+      .attr("fill", paidColor);
+    const tip = tooltip(container);
+    const hl = svg.append("rect").attr("fill", css("--accent")).attr("opacity", 0).attr("y", 12).attr("height", height - 40).attr("pointer-events", "none");
+    svg.append("g").selectAll("rect").data(data).join("rect")
+      .attr("x", (d) => x(d.k)).attr("width", x.bandwidth()).attr("y", 0).attr("height", height).attr("fill", "transparent")
+      .on("mousemove", (event, d) => {
+        hl.attr("x", x(d.k)).attr("width", x.bandwidth()).attr("opacity", 0.08);
+        tip.show(event, labelFn(d.k), [
+          { label: "Appuntamenti", value: int(d.t.calls) },
+          ...OUTCOMES.map((o) => ({ label: o.label, value: int(d.t[o.key]), color: cols[o.key] })),
+          { label: "Pagati", value: int(d.t.paid), color: paidColor },
+          { label: "Conversione", value: pct(d.t.conversion) },
+        ]);
+      })
+      .on("mouseleave", () => { hl.attr("opacity", 0); tip.hide(); });
+  }
+
+  function legend(el, items) {
+    const box = $(el); box.replaceChildren();
+    for (const it of items) {
+      const s = document.createElement("span"); const i = document.createElement("i");
+      i.style.background = it.color; if (it.line) i.className = "line";
+      s.append(i, document.createTextNode(it.label)); box.append(s);
+    }
+  }
+
+  // Linee per sales (matrice mese x sales)
+  function salesLines(el, months, series, metric) {
+    if (!months.length) return emptyChart(el, "Nessun dato nel periodo scelto.");
+    const isRate = !["paid", "calls", "answered"].includes(metric);
+    const f = isRate ? pct : int;
+    const { container, svg, width, height } = setupSvg(el, 260);
+    const all = series.flatMap((s) => s.values.map((v) => v.v)).filter((v) => v != null);
+    const y = d3.scaleLinear([0, d3.max(all) || 1], [height - 28, 12]).nice();
+    const ml = measure(svg, y.ticks(5).map(f)) + 10;
+    const endW = measure(svg, series.map((s) => s.name)) + 12;
+    const x = d3.scalePoint(months, [ml + 8, width - endW - 8]);
+    svg.append("g").attr("class", "grid").attr("transform", `translate(${ml},0)`)
+      .call(d3.axisLeft(y).ticks(5).tickSize(-(width - ml - endW)).tickFormat(f))
+      .call((g) => g.select(".domain").remove()).call((g) => g.selectAll("text").attr("x", -8))
+      .attr("font-size", null).attr("font-family", null);
+    const maxLabels = Math.max(2, Math.floor((width - ml - endW) / 54));
+    const step = Math.ceil(months.length / maxLabels);
+    svg.append("g").attr("transform", `translate(0,${height - 28})`)
+      .call(d3.axisBottom(x).tickSize(0).tickPadding(8).tickFormat((k, i) => (i % step === 0 ? monthLabel(k) : "")))
+      .attr("font-size", null).attr("font-family", null).call((g) => g.select(".domain").remove());
+    const line = d3.line().defined((d) => d.v != null).x((d) => x(d.m)).y((d) => y(d.v));
+    const ends = [];
+    for (const s of series) {
+      svg.append("path").datum(s.values).attr("fill", "none").attr("stroke", s.color).attr("stroke-width", 2)
+        .attr("stroke-linejoin", "round").attr("stroke-linecap", "round").attr("d", line);
+      svg.append("g").selectAll("circle").data(s.values.filter((d) => d.v != null)).join("circle")
+        .attr("cx", (d) => x(d.m)).attr("cy", (d) => y(d.v)).attr("r", 3).attr("fill", s.color);
+      const last = [...s.values].reverse().find((d) => d.v != null);
+      if (last) ends.push({ name: s.name, y: y(last.v), x: x(last.m), color: s.color });
+    }
+    ends.sort((a, b) => a.y - b.y);
+    for (let i = 1; i < ends.length; i++) if (ends[i].y - ends[i - 1].y < 14) ends[i].y = ends[i - 1].y + 14;
+    svg.append("g").selectAll("text").data(ends).join("text")
+      .attr("x", width - endW + 4).attr("y", (d) => d.y + 4).text((d) => d.name).style("fill", (d) => d.color).attr("font-weight", 600);
+    const tip = tooltip(container);
+    const rule = svg.append("line").attr("stroke", css("--line")).attr("y1", 12).attr("y2", height - 28).attr("opacity", 0);
+    const half = months.length > 1 ? (x(months[1]) - x(months[0])) / 2 : 40;
+    svg.append("g").selectAll("rect").data(months).join("rect")
+      .attr("x", (m) => x(m) - half).attr("width", half * 2).attr("y", 0).attr("height", height).attr("fill", "transparent")
+      .on("mousemove", (event, m) => {
+        rule.attr("x1", x(m)).attr("x2", x(m)).attr("opacity", 1);
+        tip.show(event, monthLabel(m), series.map((s) => { const v = s.values.find((d) => d.m === m)?.v; return { label: s.name, value: v == null ? "–" : f(v), color: s.color }; }));
+      })
+      .on("mouseleave", () => { rule.attr("opacity", 0); tip.hide(); });
+  }
+
+  // Barre impilate del fatturato per tipologia
+  function typesChart(el, months, rows) {
+    const codes = ["SC", "UFP", "SFP"];
+    if (!months.length) return emptyChart(el, "Nessun dato nel periodo scelto.");
+    const data = months.map((m) => { const o = { m }; for (const c of codes) o[c] = d3.sum(rows.filter((r) => r.m === m && r.code === c), (r) => r.n * r.price); return o; });
+    const { container, svg, width, height } = setupSvg(el, 280);
+    const y = d3.scaleLinear([0, d3.max(data, (d) => d3.sum(codes, (c) => d[c])) || 1], [height - 28, 12]).nice();
+    const fEur = (v) => fmtEur.format(v);
+    const ml = measure(svg, y.ticks(5).map(fEur)) + 10;
+    const x = d3.scaleBand(months, [ml, width - 8]).paddingInner(0.25).paddingOuter(0.1);
+    svg.append("g").attr("class", "grid").attr("transform", `translate(${ml},0)`)
+      .call(d3.axisLeft(y).ticks(5).tickSize(-(width - ml - 8)).tickFormat(fEur))
+      .call((g) => g.select(".domain").remove()).call((g) => g.selectAll("text").attr("x", -8))
+      .attr("font-size", null).attr("font-family", null);
+    const maxLabels = Math.max(2, Math.floor((width - ml) / 54));
+    const step = Math.ceil(months.length / maxLabels);
+    svg.append("g").attr("transform", `translate(0,${height - 28})`)
+      .call(d3.axisBottom(x).tickSize(0).tickPadding(8).tickFormat((k, i) => (i % step === 0 ? monthLabel(k) : "")))
+      .attr("font-size", null).attr("font-family", null).call((g) => g.select(".domain").attr("stroke", css("--line")));
+    const bw = Math.min(32, x.bandwidth()), off = (x.bandwidth() - bw) / 2;
+    const stack = d3.stack().keys(codes)(data);
+    svg.append("g").selectAll("g").data(stack).join("g").attr("fill", (s) => css(TYPE_COLORS[s.key]))
+      .selectAll("rect").data((s) => s).join("rect")
+      .attr("x", (d) => x(d.data.m) + off).attr("width", bw).attr("y", (d) => y(d[1])).attr("height", (d) => Math.max(0, y(d[0]) - y(d[1])));
+    const tip = tooltip(container);
+    const names = Object.fromEntries(DATA.listino.map((l) => [l.code, l.name]));
+    svg.append("g").selectAll("rect").data(data).join("rect")
+      .attr("x", (d) => x(d.m)).attr("width", x.bandwidth()).attr("y", 0).attr("height", height).attr("fill", "transparent")
+      .on("mousemove", (event, d) => tip.show(event, monthLabel(d.m), [
+        ...codes.map((c) => ({ label: names[c] || c, value: fmtEur.format(d[c]), color: css(TYPE_COLORS[c]) })),
+        { label: "Totale", value: fmtEur.format(d3.sum(codes, (c) => d[c])) },
+      ]))
+      .on("mouseleave", () => tip.hide());
+  }
+
+  // ---------- disegno delle viste ----------
+  function drawKpis() {
+    const t = agg(selectedRows());
+    const revenue = d3.sum(typeRows(), (r) => (r.price || 0) * r.n);
+    const items = [
+      { main: true, l: "Pagati", v: int(t.paid), s: `${pct(t.conversion)} degli appuntamenti` },
+      { l: "Appuntamenti", v: int(t.calls), s: `${int(t.days)} giorni lavorati` },
+      { l: "Tasso di risposta", v: pct(t.answerRate), s: `${int(t.answered)} risposto · ${int(t.noAnswer)} no show` },
+      { l: "Pagati su risposto", v: pct(t.paidOnAnswered), s: "pagati / risposto" },
+      { l: "Fatturato a listino", v: fmtEur.format(revenue), s: "mesi interi del periodo" },
+      { l: "Senza esito", v: int(t.open), s: "riunioni da aggiornare in HubSpot", warn: t.open > 0 },
+    ];
+    const box = $("#kpis"); box.replaceChildren();
+    for (const it of items) {
+      const d = document.createElement("div"); d.className = "kpi" + (it.main ? " main" : "");
+      const l = document.createElement("span"); l.className = "lbl"; l.textContent = it.l;
+      const v = document.createElement("span"); v.className = "v"; v.textContent = it.v;
+      if (it.warn) v.style.color = "var(--warn)";
+      const s = document.createElement("span"); s.className = "s"; s.textContent = it.s;
+      d.append(l, v, s); box.append(d);
+    }
+  }
+
+  function drawMonthly() {
+    const rows = selectedRows();
+    const g = groupBy(rows, (r) => r.d.slice(0, 7));
+    const months = monthsInPeriod();
+    const map = new Map(months.map((m) => [m, agg(g.get(m) || [])]));
+    outcomeChart("#chart-month", months, monthLabel, map);
+    table("#table-month", "Mese", months.map((m) => ({ label: monthLabel(m), t: map.get(m) })), agg(rows));
+  }
+  function drawWeekly() {
+    const rows = selectedRows();
+    const g = groupBy(rows, (r) => mondayOf(r.d));
+    const weeks = weeksInPeriod();
+    const map = new Map(weeks.map((w) => [w, agg(g.get(w) || [])]));
+    outcomeChart("#chart-week", weeks, dayLabel, map);
+    table("#table-week", "Settimana dal", [...weeks].reverse().map((w) => ({ label: dayLabel(w), t: map.get(w) })), agg(rows));
+  }
+  function drawCompare() {
+    const rows = DATA.days.filter(inPeriod);
+    const g = groupBy(rows, (r) => r.s);
+    table("#table-compare", "Sales", DATA.sales.map((s) => ({ label: s.fullName, t: agg(g.get(s.name) || []) })), agg(rows));
+    const months = monthsInPeriod();
+    const metric = state.metric;
+    const isRate = !["paid", "calls", "answered"].includes(metric);
+    const series = DATA.sales.map((s, i) => ({
+      name: s.name, color: css(SALES_COLORS[i % SALES_COLORS.length]),
+      values: months.map((m) => { const t = agg(rows.filter((r) => r.s === s.name && r.d.startsWith(m))); return { m, v: isRate ? t[metric] : (t.calls || t.paid ? t[metric] : null) }; }),
+    }));
+    legend("#legend-sales", series.map((s) => ({ label: s.name, color: s.color, line: true })));
+    salesLines("#chart-matrix", months, series, metric);
+    // tabella matrice
+    const box = $("#table-matrix"); box.replaceChildren();
+    const t = document.createElement("table");
+    const h = t.createTHead().insertRow();
+    for (const x of ["Mese", ...DATA.sales.map((s) => s.name)]) { const th = document.createElement("th"); th.textContent = x; h.append(th); }
+    const tb = t.createTBody();
+    const f = isRate ? pct : int;
+    for (const m of months) {
+      const tr = tb.insertRow(); tr.insertCell().textContent = monthLabel(m);
+      for (const s of series) { const v = s.values.find((d) => d.m === m).v; tr.insertCell().textContent = v == null ? "–" : f(v); }
+    }
+    box.append(t);
+  }
+  function drawTypes() {
+    const rows = typeRows();
+    const months = monthsInPeriod();
+    legend("#legend-types", DATA.listino.map((l) => ({ label: `${l.name} · ${fmtEur.format(l.price)}`, color: css(TYPE_COLORS[l.code]) })));
+    typesChart("#chart-types", months, rows);
+    const box = $("#table-types"); box.replaceChildren();
+    if (!rows.length) { const p = document.createElement("div"); p.className = "empty"; p.textContent = "Nessun pagamento nel periodo scelto."; box.append(p); return; }
+    const kinds = [...DATA.listino.map((l) => ({ code: l.code, name: l.name })), { code: "ALTRO", name: "Altro pacchetto" }, { code: "ND", name: "Non indicato" }];
+    const t = document.createElement("table");
+    const h = t.createTHead().insertRow();
+    for (const x of ["Mese", ...kinds.map((k) => k.name), "Totale pagati", "Fatturato a listino"]) { const th = document.createElement("th"); th.textContent = x; h.append(th); }
+    const tb = t.createTBody();
+    let totN = 0, totE = 0; const totK = {};
+    for (const m of months) {
+      const r = rows.filter((x) => x.m === m);
+      const tr = tb.insertRow(); tr.insertCell().textContent = monthLabel(m);
+      for (const k of kinds) { const n = d3.sum(r.filter((x) => x.code === k.code), (x) => x.n); totK[k.code] = (totK[k.code] || 0) + n; const td = tr.insertCell(); td.textContent = int(n); if (k.code === "ND" && n > 0) td.className = "flag"; }
+      const n = d3.sum(r, (x) => x.n), e = d3.sum(r, (x) => (x.price || 0) * x.n);
+      totN += n; totE += e;
+      tr.insertCell().textContent = int(n); tr.insertCell().textContent = fmtEur.format(e);
+    }
+    const tf = t.createTFoot().insertRow(); tf.insertCell().textContent = "Totale";
+    for (const k of kinds) tf.insertCell().textContent = int(totK[k.code]);
+    tf.insertCell().textContent = int(totN); tf.insertCell().textContent = fmtEur.format(totE);
+    box.append(t);
+  }
+
+  function draw() {
+    if (!DATA) return;
+    legend("#legend-outcomes", [...OUTCOMES.map((o) => ({ label: o.label, color: css(o.color) })), { label: "Pagati", color: css("--s-paid"), line: true }]);
+    legend("#legend-outcomes-w", [...OUTCOMES.map((o) => ({ label: o.label, color: css(o.color) })), { label: "Pagati", color: css("--s-paid"), line: true }]);
+    drawKpis();
+    if (state.view === "mensile") drawMonthly();
+    if (state.view === "settimanale") drawWeekly();
+    if (state.view === "confronto") drawCompare();
+    if (state.view === "tipologia") drawTypes();
+  }
+
+  // ---------- controlli ----------
+  function setPeriod(from, to) {
+    state.from = from < DATA.from ? DATA.from : from;
+    state.to = to > DATA.to ? DATA.to : to;
+    if (state.from > state.to) state.from = state.to;
+    $("#from").value = state.from; $("#to").value = state.to;
+    draw();
+  }
+  function preset(kind) {
+    const today = new Date(DATA.to + "T00:00:00Z");
+    const y = today.getUTCFullYear(), m = today.getUTCMonth();
+    if (kind === "month") setPeriod(isoDay(new Date(Date.UTC(y, m, 1))), DATA.to);
+    if (kind === "prev") setPeriod(isoDay(new Date(Date.UTC(y, m - 1, 1))), isoDay(new Date(Date.UTC(y, m, 0))));
+    if (kind === "90") { const d = new Date(today); d.setUTCDate(d.getUTCDate() - 89); setPeriod(isoDay(d), DATA.to); }
+    if (kind === "all") setPeriod(DATA.from, DATA.to);
+  }
+  function buildChips() {
+    const box = $("#sales-chips"); box.replaceChildren();
+    for (const s of [{ name: "all", label: "Tutti" }, ...DATA.sales.map((s) => ({ name: s.name, label: s.name }))]) {
+      const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.textContent = s.label;
+      b.setAttribute("aria-pressed", String(state.sales === s.name));
+      b.addEventListener("click", () => { state.sales = s.name; box.querySelectorAll(".chip").forEach((c) => c.setAttribute("aria-pressed", String(c === b))); draw(); });
+      box.append(b);
+    }
+  }
+  document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () => {
+    state.view = t.dataset.view;
+    document.querySelectorAll(".tab").forEach((x) => x.setAttribute("aria-selected", String(x === t)));
+    document.querySelectorAll("section.view").forEach((s) => (s.hidden = s.id !== "view-" + state.view));
+    try { history.replaceState(null, "", "#" + state.view); } catch (_) {}
+    draw();
+  }));
+  document.querySelectorAll("[data-preset]").forEach((b) => b.addEventListener("click", () => preset(b.dataset.preset)));
+  for (const id of ["from", "to"]) {
+    $("#" + id).addEventListener("change", () => { const f = $("#from"), t = $("#to"); if (f.validity.valid && t.validity.valid && f.value && t.value) setPeriod(f.value, t.value); });
+  }
+  $("#matrix-metric").addEventListener("change", (e) => { state.metric = e.target.value; draw(); });
+  let rt; window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(draw, 150); });
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", draw);
+
+  // ---------- caricamento ----------
+  async function load() {
+    try {
+      const res = await fetch("/api/data", { cache: "no-store" });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Dati non disponibili");
+      DATA = json;
+      const when = new Date(DATA.updatedAt);
+      const upd = $("#updated"); upd.replaceChildren();
+      upd.append("Dati HubSpot aggiornati il ");
+      const b = document.createElement("b");
+      b.textContent = when.toLocaleString("it-IT", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Rome" });
+      upd.append(b, " · aggiornamento ogni 3 ore");
+      const alert = $("#alert");
+      if (DATA.lastError) { alert.hidden = false; alert.textContent = "L'ultimo aggiornamento da HubSpot non è riuscito: i numeri sono quelli dell'aggiornamento precedente."; }
+      $("#from").min = $("#to").min = DATA.from; $("#from").max = $("#to").max = DATA.to;
+      buildChips();
+      const hash = location.hash.slice(1);
+      if (["mensile", "settimanale", "confronto", "tipologia"].includes(hash)) document.getElementById("tab-" + hash).click();
+      setPeriod(DATA.from, DATA.to);
+    } catch (err) {
+      $("#updated").textContent = "";
+      const alert = $("#alert"); alert.hidden = false; alert.textContent = err.message;
+    }
+  }
+  load();
+})();
+</script>
+</body>
+</html>
